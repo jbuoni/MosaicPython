@@ -7,6 +7,8 @@ import glob
     Resize all images in array. Called if height
     and width are the same value
 
+    http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#void resize(InputArray src, OutputArray dst, Size dsize, double fx, double fy, int interpolation)
+
     Args:
         size: Height and width of the image
         images: Array of images
@@ -34,6 +36,39 @@ def resizeImages(height, width, images):
         output.append(image)
     return output
 
+
+"""
+    Converts images to grayscale
+    http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html
+
+    Args:
+        images: Array of images
+    Returns:
+        array of grayscale images
+"""
+def convertToGrayscale(images):
+    output = []
+
+    for image in range(len(images)):
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        output.append(gray_image)
+
+    return output
+
+
+"""
+    Crop image
+
+    Args:
+        image: Numpy 2d array representing the image
+        cropX: Crop for each column
+        cropY: Crop for each row
+
+    Returns:
+        Cropped image
+"""
+def cropImage(image, cropX, cropY):
+    return image[: image.shape[0] - cropX, : image.shape[1] - cropY]
 
 """
     Copied from assignment 11.
