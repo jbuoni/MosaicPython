@@ -4,6 +4,7 @@ import sys
 import cv2
 
 
+# http://williamedwardscoder.tumblr.com/post/84505278488/making-image-mosaics
 def main():
     if len(sys.argv) != 4:
         print "Arguments cannot equal 0. Please pass in, image directory, full image, greyscale, height, and width"
@@ -15,6 +16,6 @@ def main():
     height = sys.argv[3]
     width = sys.argv[4]
 
-    result = mosaic.generateMosaic(full_img, utils.readImages(image_dir), greyscale, height, width)
+    result = mosaic.generatemosaic(full_img, utils.readimages(image_dir), greyscale, height, width)
 
     cv2.imwrite('mosaic.png', result)
