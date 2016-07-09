@@ -1,6 +1,7 @@
 import image_utils as utils
 import math
 import cv2
+import sys
 
 """
     Get RGB color distance. Though it appears that there are better ways start off using this
@@ -15,7 +16,22 @@ def getcolordistance_rgb(rgb1, rgb2):
 
     return math.sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8))
 
-def generatepathimages(image_dir, height, width):
+def getclosestpatchmatch(full_color_average, patch_images):
+
+    min_distance = sys.maxint
+    return_image = {}
+    for i in range(len(patch_images)):
+        image = patch_images[i]
+
+        distance = getcolordistance_rgb(full_color_average, image["color_averages"])
+
+        if distance < min_distance:
+            min_distance = distance
+            return_image = image["resized_image"]
+
+    return return_image
+
+def generatepathimages(image_dir, size):
     #Read all images
     images = utils.readimages(image_dir)
 
@@ -33,7 +49,7 @@ def generatepathimages(image_dir, height, width):
         #Create patch image object
         patch_image["path"] = image_obj["path"]
         patch_image["image"] = image
-        patch_image["resized_image"] = utils.resizeimage(height, width, image)
+        patch_image["resized_image"] = utils.resizeimage(size, size, image)
         patch_image["color_averages"] = getChannelColorAverages(image)
 
         patchimages.append(patch_image)
@@ -69,6 +85,35 @@ def getChannelColorAverages(image):
 
     return output
 
+def createfullimage(path, patchsize):
+    image = cv2.imread(path)
+    height, width, colorRange = image.shape
 
-def generatemosaic(full_image, image_dir, greyscale, height, width):
-    generatepathimages(image_dir)
+    image = cv2.resize(image, (width / patchsize * patchsize, height / patchsize * patchsize))
+    return image
+
+
+def createpatchline(idx, width, patchimages, full_image, patch_size, channels):
+    for j in range(width / patch_size):
+        full_image_patch = full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size]
+        full_color_average = getChannelColorAverages(full_image_patch)
+        patch = getclosestpatchmatch(full_color_average, patchimages)
+        full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size] = patch
+
+
+def generatemosaic(full_img_dir, image_dir, greyscale, size, channels="rgb"):
+    patchimages = generatepathimages(image_dir, size)
+
+    fullimage = createfullimage(full_img_dir, size)
+
+    height, width, colorRange = fullimage.shape
+
+    print "Generating mosaic image of size ", height, " by ", width
+
+    for i in range(height / size):
+        createpatchline(i, width, patchimages, fullimage, size, channels)
+
+    print "Finished processing of image"
+
+    cv2.imwrite("mosaic.jpg", fullimage)
+

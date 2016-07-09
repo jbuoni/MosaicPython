@@ -11,11 +11,11 @@ def main():
 
     # http://www.tutorialspoint.com/python/python_command_line_arguments.htm
     image_dir = sys.argv[0]
-    full_img = sys.argv[1]
+    full_img_dir = sys.argv[1]
     greyscale = sys.argv[2]
     height = sys.argv[3]
     width = sys.argv[4]
 
-    result = mosaic.generatemosaic(full_img, utils.readimages(image_dir), greyscale, height, width)
+    result = mosaic.generatemosaic(full_img_dir, utils.readimages(image_dir), greyscale, height, width)
 
     cv2.imwrite('mosaic.png', result)
