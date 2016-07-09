@@ -16,7 +16,7 @@ import glob
         array of resized images
 """
 def resizeImages(size, images):
-    return resizeImages(size, size, images)
+    return resizeImagesDiffHeightWidth(size, size, images)
 
 
 """
@@ -29,7 +29,7 @@ def resizeImages(size, images):
     Returns:
         array of resized images
 """
-def resizeImages(height, width, images):
+def resizeImagesDiffHeightWidth(height, width, images):
     output = []
     for image in range(len(images)):
         image = cv2.resize(image, (width, height))
