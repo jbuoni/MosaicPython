@@ -93,15 +93,19 @@ def createfullimage(path, patchsize):
     return image
 
 
-def createpatchline(idx, width, patchimages, full_image, patch_size, channels):
+def createpatchline(idx, width, patchimages, full_image, patch_size):
     for j in range(width / patch_size):
+        # Create a "patch" of the image using the full image. Used to compare colors
         full_image_patch = full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size]
         full_color_average = getChannelColorAverages(full_image_patch)
+        #Get closest match
         patch = getclosestpatchmatch(full_color_average, patchimages)
+        #Add patch
         full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size] = patch
 
+        return full_image
 
-def generatemosaic(full_img_dir, image_dir, greyscale, size, channels="rgb"):
+def generatemosaic(full_img_dir, image_dir, greyscale, size):
     patchimages = generatepathimages(image_dir, size)
 
     fullimage = createfullimage(full_img_dir, size)
@@ -111,7 +115,7 @@ def generatemosaic(full_img_dir, image_dir, greyscale, size, channels="rgb"):
     print "Generating mosaic image of size ", height, " by ", width
 
     for i in range(height / size):
-        createpatchline(i, width, patchimages, fullimage, size, channels)
+        fullimage = createpatchline(i, width, patchimages, fullimage, size)
 
     print "Finished processing of image"
 
