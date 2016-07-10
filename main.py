@@ -1,30 +1,38 @@
 import mosaic
-import image_utils as utils
+import sys
 import os
 import cv2
 
 
-# http://williamedwardscoder.tumblr.com/post/84505278488/making-image-mosaics
-# https://github.com/cinemast/OpenMosaic
 def main():
-    # if len(sys.argv) != 4:
-    #     print "Arguments cannot equal 0. Please pass in, image directory, full image, greyscale, height, and width"
+    """
+    Main function
+
+    Documentation:
+        http://williamedwardscoder.tumblr.com/post/84505278488/making-image-mosaics
+        https://github.com/cinemast/OpenMosaic
+    """
+    print "Running Mosaic Image Generator. Possible args (all optional) size, greyscale, repeat." \
+          "If not specified, the defaults are 20, False, True."
+
+    size = 20
+    greyscale = False
+    repeat = True
 
     # http://www.tutorialspoint.com/python/python_command_line_arguments.htm
-    # image_dir = sys.argv[0]
-    # full_img_dir = sys.argv[1]
-    # greyscale = sys.argv[2]
-    # height = sys.argv[3]
-    # width = sys.argv[4]
+    if len(sys.argv) > 1:
+        size = int(sys.argv[1])
 
-    # image_dir = "/source/patches"
-    full_img_dir = "source/full/Landscape1.jpg"
-    greyscale = False
-    size = 50
+    if len(sys.argv) > 2:
+        greyscale = bool(sys.argv[2])
 
+    if len(sys.argv) > 3:
+        repeat = bool(sys.argv[3])
+
+    full_img_dir = "source/full/yunghumma.png"
     image_dir = os.path.join("source", "patches")
 
-    result = mosaic.generatemosaic(full_img_dir, image_dir, greyscale, size, False)
+    result = mosaic.generatemosaic(full_img_dir, image_dir, size, greyscale, repeat)
 
     cv2.imwrite('mosaic.png', result)
 

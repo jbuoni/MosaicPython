@@ -1,4 +1,3 @@
-import numpy
 import cv2
 import os
 from glob import glob
@@ -25,37 +24,31 @@ from glob import glob
 """
 
 
-"""
+def resizeimages(size, images):
+    """
     Resize all images in array. Called if height
     and width are the same value
 
     http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#void resize(InputArray src, OutputArray dst, Size dsize, double fx, double fy, int interpolation)
 
-    Args:
-        size: Height and width of the image
-        images: Array of images
-    Returns:
-        array of resized images
-"""
-
-
-def resizeimages(size, images):
+    :param size: Height and width of the image
+    :param images: Array of images
+    :return: Array of resized images
+    """
     return resizeimages_diffheightwidth(size, size, images)
 
 
-"""
-    Resize all images in array.
-
-    Args:
-        height: Image hight as an int
-        width: Image width as an int
-        images: Array of images
-    Returns:
-        array of resized images
-"""
-
-
 def resizeimages_diffheightwidth(height, width, images):
+    """
+        Resize all images in array.
+
+        Args:
+            height: Image hight as an int
+            width: Image width as an int
+            images: Array of images
+        Returns:
+            array of resized images
+    """
     output = []
     for image in range(len(images)):
         image = resizeimage(height, width, image)
@@ -64,20 +57,26 @@ def resizeimages_diffheightwidth(height, width, images):
 
 
 def resizeimage(height, width, image):
+    """
+    Resize a single image to a specified height and width
+
+    :param height: New height.
+    :param width: New width. In most cases, same as height.
+    :param image: Image to resize
+    :return: Resized image as array
+    """
     return cv2.resize(image, (height, width))
-
-"""
-    Converts images to grayscale
-    http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html
-
-    Args:
-        images: Array of images
-    Returns:
-        array of grayscale images
-"""
 
 
 def converttograyscale(images):
+    """
+    Converts images to grayscale
+    http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html
+
+    :param images: List of images to convert to grayscale
+    :return: Array of grayscale images
+    """
+
     output = []
 
     for image in range(len(images)):
@@ -87,41 +86,50 @@ def converttograyscale(images):
     return output
 
 
-"""
-    Crop image
+def createfullimage(path, patchsize):
+    """
+    To ensure that the image is of the correct size, we want to prevent overflow
+    that we would have run into if we do not alter the size of the image. To do this, we
+    want to ensure that the width and height will be divisible by the patch size.
 
-    Args:
-        image: Numpy 2d array representing the image
-        cropX: Crop for each column
-        cropY: Crop for each row
+    :param path: path to full image. Should include image file name
+    :param patchsize: Size of patches for image. Used in resizing the full image
+    :return:
+    """
 
-    Returns:
-        Cropped image
-"""
+    image = cv2.imread(path)
+    height, width, colorRange = image.shape
+
+    # Divide by patch size, then increase it by the multiple of patch size.
+    # I did this, because it seemed like an approach that more of the published mosaic software tools
+    # used over just cropping the image to be divisible by the patch size.
+    image = cv2.resize(image, (width / patchsize * patchsize, height / patchsize * patchsize))
+    return image
 
 
 def cropimage(image, cropX, cropY):
+    """
+    Crop image. This function is deprecated. After research, it was
+    determined that there is a better way to create the full image of proper size
+
+    :param image: Numpy 2d array representing the image
+    :param cropX: Crop for each column
+    :param cropY: Crop for each row
+    :return: Cropped image
+    """
     return image[: image.shape[0] - cropX, : image.shape[1] - cropY]
 
-"""
+
+def readimages(image_dir):
+    """
     Copied from assignment 11.
     This function reads in input images from a image directory.
     Slightly modified to fit what we are doing here.
 
-    Note: This is implemented for you since its not really relevant to
-    computational photography (+ time constraints).
-
-    Args:
-        image_dir (str): The image directory to get images from.
-
-    Returns:
-        images(list): List of images mapped to a file name in image_dir. Each image in the list is of
+    :param image_dir: (str) The image directory to get images from.
+    :return: List of images mapped to a file name in image_dir. Each image in the list is of
                       type numpy.ndarray.
-
-"""
-
-
-def readimages(image_dir):
+    """
     extensions = ['bmp', 'pbm', 'pgm', 'ppm', 'sr', 'ras', 'jpeg',
                   'jpg', 'jpe', 'jp2', 'tiff', 'tif', 'png']
 
