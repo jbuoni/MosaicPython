@@ -1,7 +1,7 @@
 import numpy
 import cv2
 import os
-import glob
+from glob import glob
 
 """
     Documentation:
@@ -131,10 +131,10 @@ def readimages(image_dir):
     image_objects = []
 
     for i in image_files:
-        image = cv2.imread(image_files[i], cv2.IMREAD_UNCHANGED | cv2.IMREAD_COLOR)
+        image = cv2.imread(i, cv2.IMREAD_UNCHANGED | cv2.IMREAD_COLOR)
 
         image_obj = {}
-        image_obj["path"] = os.path.join(image_dir, image_files[i])
+        image_obj["path"] = os.path.join(image_dir, i)
         image_obj["image"] = image
 
         image_objects.append(image_obj)
