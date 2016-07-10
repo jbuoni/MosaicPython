@@ -18,23 +18,28 @@ def main():
     size = 20
     greyscale = False
     repeat = True
-
-    # http://www.tutorialspoint.com/python/python_command_line_arguments.htm
-    if len(sys.argv) > 1:
-        size = int(sys.argv[1])
-
-    if len(sys.argv) > 2:
-        greyscale = bool(sys.argv[2])
-
-    if len(sys.argv) > 3:
-        repeat = bool(sys.argv[3])
-
     full_img_dir = "source/full/yunghumma.png"
     image_dir = os.path.join("source", "patches")
 
+    # http://www.tutorialspoint.com/python/python_command_line_arguments.htm
+    if len(sys.argv) > 1:
+        full_img_dir = sys.argv[1]
+
+    if len(sys.argv) > 2:
+        image_dir = sys.argv[2]
+
+    if len(sys.argv) > 3:
+        size = int(sys.argv[3])
+
+    if len(sys.argv) > 4:
+        greyscale = bool(sys.argv[4])
+
+    if len(sys.argv) > 5:
+        repeat = bool(sys.argv[5])
+
     result = mosaic.generatemosaic(full_img_dir, image_dir, size, greyscale, repeat)
 
-    cv2.imwrite('mosaic.png', result)
+    cv2.imwrite('output/mosaic.png', result)
 
 if __name__ == "__main__":
     main()

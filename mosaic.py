@@ -15,6 +15,7 @@ patchimages_copy = []
 """
 patch_size = 0
 width = 0
+greyscale = False
 
 
 def getcolordistance_rgb(rgb1, rgb2):
@@ -54,7 +55,10 @@ def getclosestpatchmatch(full_color_average, patch_images):
     for i in range(len(patch_images)):
         image = patch_images[i]
 
-        distance = getcolordistance_rgb(full_color_average, image["color_averages"])
+        if greyscale:
+            distance = full_color_average["greyscale"] - image["color_averages"]["greyscale"]
+        else:
+            distance = getcolordistance_rgb(full_color_average, image["color_averages"])
 
         if distance < min_distance:
             min_distance = distance
@@ -75,6 +79,7 @@ def generatepathimages(image_dir):
     patch_size.
 
     :param image_dir: Directory that contains all patch images
+    :param greyscale: (bool) Converts image to greyscale if true
     :return: List of all patch image objects:
     {
         path: Image path
@@ -84,9 +89,10 @@ def generatepathimages(image_dir):
     }
     """
     #Read all images
-    images = utils.readimages(image_dir)
+    images = utils.readimages(image_dir, greyscale)
 
     # Create patch image object
+    global patchimages
     patchimages = []
 
     #Create array of patch image objects
@@ -123,15 +129,28 @@ def getaveragechannelcolor(image, channel, rng=256):
     :param image: Image to get average
     :param channel: Color channel (R, G, B)
     :param rng: Channel boundries. 256 unless specified
-    :return:
+    :return: Float value representing the average color
     """
 
-    height, width, colorRange = image.shape
+    height = image.shape[0]
+    width = image.shape[1]
 
     histogram = cv2.calcHist([image], [channel], None, [rng], [0, rng])
     color_sum = sum(idx * histogram[idx] for idx in range(len(histogram)))
 
     return color_sum / (width * height)
+
+
+def getgreyscaleaverage(image):
+    """
+    Get average greyscale value
+
+    :param image: Image to get average
+    :return: Float value representing the average greyscale value
+    """
+    total_sum = sum(map(sum, image))
+
+    return (total_sum / (image.shape[1] * image.shape[0])).astype(np.uint8)
 
 
 def getchannelcoloraverages(image):
@@ -144,10 +163,13 @@ def getchannelcoloraverages(image):
     """
     output = {}
 
-    # According to the split in the SO post b is at 0, g at 1, r at 2
-    output["b"] = getaveragechannelcolor(image, 0)
-    output["g"] = getaveragechannelcolor(image, 1)
-    output["r"] = getaveragechannelcolor(image, 2)
+    if greyscale:
+        output["greyscale"] = getgreyscaleaverage(image)
+    else:
+        # According to the split in the SO post b is at 0, g at 1, r at 2
+        output["b"] = getaveragechannelcolor(image, 0)
+        output["g"] = getaveragechannelcolor(image, 1)
+        output["r"] = getaveragechannelcolor(image, 2)
 
     return output
 
@@ -164,7 +186,7 @@ def createpatchline(idx, full_image, repeat):
     :return:
     """
     # Divide by patch size so that we
-    for w in range(0, width / patch_size):
+    for w in range(width / patch_size):
         # Create a "patch" of the image using the full image. Used to compare colors
         full_image_patch = full_image[idx * patch_size:(idx + 1) * patch_size, w * patch_size:(w + 1) * patch_size]
         full_color_average = getchannelcoloraverages(full_image_patch)
@@ -182,8 +204,9 @@ def createpatchline(idx, full_image, repeat):
 
     return full_image
 
-def generatemosaic(full_img_dir, image_dir, size, greyscale=False, repeat=True):
+def generatemosaic(full_img_dir, image_dir, size, greyscale_val=False, repeat=True):
     """
+    Generate the full mosaic image
 
     :param full_img_dir: File path (file name included) of full image. Will be patched with smaller images
     :param image_dir: Directory of images used to create patches.
@@ -201,7 +224,10 @@ def generatemosaic(full_img_dir, image_dir, size, greyscale=False, repeat=True):
     global patch_size
     patch_size = size
 
-    fullimage = utils.createfullimage(full_img_dir, patch_size)
+    global greyscale
+    greyscale = greyscale_val
+
+    fullimage = utils.createfullimage(full_img_dir, patch_size, greyscale)
 
     print "Generating patch images"
     global patchimages
@@ -213,11 +239,12 @@ def generatemosaic(full_img_dir, image_dir, size, greyscale=False, repeat=True):
     patchimages_copy = list(patchimages)
 
     global width
-    height, width, colorRange = fullimage.shape
+    height = fullimage.shape[0]
+    width = fullimage.shape[1]
 
     print "Generating mosaic image of size ", height, " by ", width
 
-    for i in range(0, height / size):
+    for i in range(height / size):
         fullimage = createpatchline(i, fullimage, repeat)
 
     print "Finished processing of image"

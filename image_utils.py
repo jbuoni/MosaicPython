@@ -1,6 +1,7 @@
 import cv2
 import os
 from glob import glob
+import numpy as np
 
 """
     Documentation:
@@ -68,25 +69,18 @@ def resizeimage(height, width, image):
     return cv2.resize(image, (height, width))
 
 
-def converttograyscale(images):
+def converttograyscale(image):
     """
     Converts images to grayscale
     http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html
 
-    :param images: List of images to convert to grayscale
-    :return: Array of grayscale images
+    :param image: Image to convert to grayscale
+    :return: Greyscale image
     """
-
-    output = []
-
-    for image in range(len(images)):
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        output.append(gray_image)
-
-    return output
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
-def createfullimage(path, patchsize):
+def createfullimage(path, patchsize, greyscale=False):
     """
     To ensure that the image is of the correct size, we want to prevent overflow
     that we would have run into if we do not alter the size of the image. To do this, we
@@ -94,16 +88,25 @@ def createfullimage(path, patchsize):
 
     :param path: path to full image. Should include image file name
     :param patchsize: Size of patches for image. Used in resizing the full image
+    :param greyscale: (bool) True if a greyscale
     :return:
     """
+    image = None
 
-    image = cv2.imread(path)
-    height, width, colorRange = image.shape
+    if greyscale:
+        image = cv2.imread(path, 0)
+    else:
+        image = cv2.imread(path)
+
+    height = image.shape[0]
+    width = image.shape[1]
 
     # Divide by patch size, then increase it by the multiple of patch size.
     # I did this, because it seemed like an approach that more of the published mosaic software tools
     # used over just cropping the image to be divisible by the patch size.
     image = cv2.resize(image, (width / patchsize * patchsize, height / patchsize * patchsize))
+    cv2.imwrite('output/full_image.png', image)
+
     return image
 
 
@@ -120,13 +123,14 @@ def cropimage(image, cropX, cropY):
     return image[: image.shape[0] - cropX, : image.shape[1] - cropY]
 
 
-def readimages(image_dir):
+def readimages(image_dir, greyscale=False):
     """
     Copied from assignment 11.
     This function reads in input images from a image directory.
     Slightly modified to fit what we are doing here.
 
     :param image_dir: (str) The image directory to get images from.
+    :param greyscale (bool) True if a greyscale
     :return: List of images mapped to a file name in image_dir. Each image in the list is of
                       type numpy.ndarray.
     """
@@ -139,7 +143,12 @@ def readimages(image_dir):
     image_objects = []
 
     for i in image_files:
-        image = cv2.imread(i, cv2.IMREAD_UNCHANGED | cv2.IMREAD_COLOR)
+        image = None
+
+        if greyscale:
+            image = cv2.imread(i, 0)
+        else:
+            image = cv2.imread(i, cv2.IMREAD_UNCHANGED | cv2.IMREAD_COLOR)
 
         image_obj = {}
         image_obj["path"] = os.path.join(image_dir, i)

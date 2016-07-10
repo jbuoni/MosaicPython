@@ -40,19 +40,18 @@ class TestImageUtilsMethods(unittest.TestCase):
         self.assertEqual(resize_4.shape, (2, 2))
 
     def test_convertToGrayscale(self):
-        grayscale = utils.converttograyscale(self.images_2)
+        grayscale = utils.converttograyscale(self.image_2)
 
-        images_are_grayscale = True
+        imageisgrayscale = True
 
-        for img in range(len(grayscale)):
-            h, w = grayscale[img].shape
-            for i in range(w):
-                for j in range(h):
-                    r, g, b = grayscale[img].getpixel((i, j))
-                    if r != g != b:
-                        images_are_grayscale = False
+        h, w = grayscale.shape
+        for i in range(w):
+            for j in range(h):
+                r, g, b = grayscale.getpixel((i, j))
+                if r != g != b:
+                    imageisgrayscale = False
 
-        self.assertTrue(images_are_grayscale)
+        self.assertTrue(imageisgrayscale)
 
     def test_cropImage(self):
         cropped_image = utils.cropimage(self.image_1, 1, 1)
