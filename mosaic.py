@@ -33,7 +33,11 @@ def getclosestpatchmatch(full_color_average, patch_images):
 
         if distance < min_distance:
             min_distance = distance
-            return_image = image["resized_image"]
+            return_image["image"] = image["resized_image"]
+            return_image["index"] = i
+
+    if min_distance == sys.maxint:
+        print "Out of images..."
 
     return return_image
 
@@ -99,7 +103,7 @@ def createfullimage(path, patchsize):
     return image
 
 
-def createpatchline(idx, width, patchimages, full_image, patch_size):
+def createpatchline(idx, width, full_image, patch_size, repeat):
     for j in range(0, width / patch_size):
         # Create a "patch" of the image using the full image. Used to compare colors
         full_image_patch = full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size]
@@ -107,28 +111,46 @@ def createpatchline(idx, width, patchimages, full_image, patch_size):
         #Get closest match
         patch = getclosestpatchmatch(full_color_average, patchimages)
         #Add patch
-        full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size] = patch
+        full_image[idx * patch_size:(idx + 1) * patch_size, j * patch_size:(j + 1) * patch_size] = patch["image"]
+
+        if not repeat:
+            patchimages.remove(patchimages[patch["index"]])
+
+        if len(patchimages) == 0:
+            global patchimages
+            patchimages = list(patchimages_copy)
 
     return full_image
 
-def generatemosaic(full_img_dir, image_dir, greyscale, size):
+"""
+    Make these global to allow for repeating with more of a range.
+    If these were not global, we would see more repeated images.
+"""
+patchimages = []
+patchimages_copy = []
+
+def generatemosaic(full_img_dir, image_dir, greyscale, size, repeat=True):
 
     print "Generating full image"
     fullimage = createfullimage(full_img_dir, size)
 
     print "Generating patch images"
+    global patchimages
     patchimages = generatepathimages(image_dir, size)
+
+    # For repeating. Typically, we run out if images unless there are a ton for smaller patches
+    # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
+    global patchimages_copy
+    patchimages_copy = list(patchimages)
 
     height, width, colorRange = fullimage.shape
 
     print "Generating mosaic image of size ", height, " by ", width
 
     for i in range(0, height / size):
-        fullimage = createpatchline(i, width, patchimages, fullimage, size)
+        fullimage = createpatchline(i, width, fullimage, size, repeat)
 
     print "Finished processing of image"
-
-    cv2.imwrite("mosaic.jpg", fullimage)
 
     return fullimage
 

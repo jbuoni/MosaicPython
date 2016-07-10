@@ -5,6 +5,7 @@ import cv2
 
 
 # http://williamedwardscoder.tumblr.com/post/84505278488/making-image-mosaics
+# https://github.com/cinemast/OpenMosaic
 def main():
     # if len(sys.argv) != 4:
     #     print "Arguments cannot equal 0. Please pass in, image directory, full image, greyscale, height, and width"
@@ -17,13 +18,13 @@ def main():
     # width = sys.argv[4]
 
     # image_dir = "/source/patches"
-    full_img_dir = "source/full/donkey.JPG"
+    full_img_dir = "source/full/Landscape1.jpg"
     greyscale = False
-    size = 20
+    size = 50
 
     image_dir = os.path.join("source", "patches")
 
-    result = mosaic.generatemosaic(full_img_dir, image_dir, greyscale, size)
+    result = mosaic.generatemosaic(full_img_dir, image_dir, greyscale, size, False)
 
     cv2.imwrite('mosaic.png', result)
 
