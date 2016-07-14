@@ -16,10 +16,10 @@ patchimages_copy = []
 patch_size = 0
 width = 0
 greyscale = False
+channel = "rgb"
 
 
 def getcolordistance_rgb(rgb1, rgb2):
-
     """
     Get RGB color distance. Though it appears that there are better ways start off using this
     http://stackoverflow.com/questions/8863810/python-find-similar-colors-best-way
@@ -56,7 +56,7 @@ def getclosestpatchmatch(full_color_average, patch_images):
         image = patch_images[i]
 
         if greyscale:
-            distance = full_color_average["greyscale"] - image["color_averages"]["greyscale"]
+            distance = (full_color_average["greyscale"] - image["color_averages"]["greyscale"]).astype(np.uint8)
         else:
             distance = getcolordistance_rgb(full_color_average, image["color_averages"])
 
@@ -73,7 +73,6 @@ def getclosestpatchmatch(full_color_average, patch_images):
 
 
 def generatepathimages(image_dir):
-
     """
     Create the patch images. Grab the image from the image directory and resize it to match
     patch_size.
@@ -92,8 +91,7 @@ def generatepathimages(image_dir):
     images = utils.readimages(image_dir, greyscale)
 
     # Create patch image object
-    global patchimages
-    patchimages = []
+    output = []
 
     #Create array of patch image objects
     for i in range(len(images)):
@@ -109,9 +107,9 @@ def generatepathimages(image_dir):
         patch_image["resized_image"] = utils.resizeimage(patch_size, patch_size, image)
         patch_image["color_averages"] = getchannelcoloraverages(image)
 
-        patchimages.append(patch_image)
+        output.append(patch_image)
 
-    return patchimages
+    return output
 
 
 def getaveragechannelcolor(image, channel, rng=256):
@@ -166,11 +164,18 @@ def getchannelcoloraverages(image):
     if greyscale:
         output["greyscale"] = getgreyscaleaverage(image)
     else:
-        # According to the split in the SO post b is at 0, g at 1, r at 2
-        output["b"] = getaveragechannelcolor(image, 0)
-        output["g"] = getaveragechannelcolor(image, 1)
-        output["r"] = getaveragechannelcolor(image, 2)
-
+        if channel == "rgb":
+            # According to the split in the SO post b is at 0, g at 1, r at 2
+            output["b"] = getaveragechannelcolor(image, 0)
+            output["g"] = getaveragechannelcolor(image, 1)
+            output["r"] = getaveragechannelcolor(image, 2)
+        elif channel == "hsv":
+            # Convert image to HSV
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+            # Range of h should be 180
+            output["h"] = getaveragechannelcolor(image, 0, 180)
+            output["s"] = getaveragechannelcolor(image, 1, 256)
+            output["v"] = getaveragechannelcolor(image, 2, 256)
     return output
 
 
@@ -204,7 +209,7 @@ def createpatchline(idx, full_image, repeat):
 
     return full_image
 
-def generatemosaic(full_img_dir, image_dir, size, greyscale_val=False, repeat=True):
+def generatemosaic(full_img_dir, image_dir, size, greyscale_val=False, repeat=True, channelparam="rgb"):
     """
     Generate the full mosaic image
 
@@ -220,6 +225,9 @@ def generatemosaic(full_img_dir, image_dir, size, greyscale_val=False, repeat=Tr
     """
 
     print "Generating full image"
+
+    global channel
+    channel = channelparam
 
     global patch_size
     patch_size = size
