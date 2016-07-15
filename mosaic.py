@@ -38,6 +38,21 @@ def getcolordistance_rgb(rgb1, rgb2):
     return math.sqrt((((512 + rmean) * r_val * r_val) >> 8) + 4 * g_val * g_val + (((767 - rmean) * b_val * b_val) >> 8))
 
 
+def calculatecolordistantance_hsv(hsv1, hsv2):
+    """
+    Get HSV color distance.
+    http://stackoverflow.com/questions/35113979/calculate-distance-between-colors-in-hsv-space
+    :param hsv1: First average
+    :param hsv2: Second image average
+    :return:
+    """
+    h_dist = min(abs(hsv2["h"] - hsv1["h"]), 360 - abs(hsv2["h"] - hsv1["h"])) / 180.0
+    s_dist = abs(hsv2["s"] - hsv1["s"])
+    v_dist = abs(hsv2["v"] - hsv1["v"]) / 255.0
+
+    return math.sqrt(h_dist * h_dist + s_dist * s_dist + v_dist * v_dist)
+
+
 def getclosestpatchmatch(full_color_average, patch_images):
     """
     Determine the closest match to a patch image
@@ -57,8 +72,10 @@ def getclosestpatchmatch(full_color_average, patch_images):
 
         if greyscale:
             distance = (full_color_average["greyscale"] - image["color_averages"]["greyscale"]).astype(np.uint8)
-        else:
+        elif channel == "rgb":
             distance = getcolordistance_rgb(full_color_average, image["color_averages"])
+        elif channel == "hsv":
+            distance = calculatecolordistantance_hsv(full_color_average, image["color_averages"])
 
         if distance < min_distance:
             min_distance = distance
