@@ -191,8 +191,8 @@ def getchannelcoloraverages(image):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
             # Range of h should be 180
             output["h"] = getaveragechannelcolor(image, 0, 180)
-            output["s"] = getaveragechannelcolor(image, 1, 256)
-            output["v"] = getaveragechannelcolor(image, 2, 256)
+            output["s"] = getaveragechannelcolor(image, 1)
+            output["v"] = getaveragechannelcolor(image, 2)
     return output
 
 

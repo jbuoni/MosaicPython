@@ -105,7 +105,6 @@ def createfullimage(path, patchsize, greyscale=False):
     # I did this, because it seemed like an approach that more of the published mosaic software tools
     # used over just cropping the image to be divisible by the patch size.
     image = cv2.resize(image, (width / patchsize * patchsize, height / patchsize * patchsize))
-    cv2.imwrite('output/full_image.png', image)
 
     return image
 
