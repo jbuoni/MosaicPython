@@ -27,7 +27,6 @@ def main():
     image_dir = os.path.join("source", "patches")
     channel = "rgb"
 
-    # http://www.tutorialspoint.com/python/python_command_line_arguments.htm
     if len(sys.argv) > 1:
         full_img_dir = sys.argv[1]
 
