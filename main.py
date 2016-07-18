@@ -1,3 +1,6 @@
+# main.py
+# Jason Buoni
+# jason.buoni@gatech.edu
 import mosaic
 import sys
 import os

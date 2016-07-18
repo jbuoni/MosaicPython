@@ -1,7 +1,10 @@
+# image_utils.py
+# Jason Buoni
+# jason.buoni@gatech.edu
+
 import cv2
 import os
 from glob import glob
-import numpy as np
 
 """
     Documentation:

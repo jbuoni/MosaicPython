@@ -1,3 +1,6 @@
+# image_utils_test.py
+# Jason Buoni
+# jason.buoni@gatech.edu
 import unittest
 import numpy as np
 import image_utils as utils

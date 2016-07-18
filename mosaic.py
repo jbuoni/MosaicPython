@@ -1,3 +1,6 @@
+# mosaic.py
+# Jason Buoni
+# jason.buoni@gatech.edu
 import image_utils as utils
 import math
 import cv2
