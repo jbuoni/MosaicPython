@@ -230,21 +230,21 @@ def getchannelcoloraverages(image, forjson=False):
     output = {}
 
     if greyscale:
-        output["greyscale"] = getgreyscaleaverage(image)[0]
+        output["greyscale"] = getgreyscaleaverage(image)
+    else:
+        if channel == "rgb" or forjson:
+            # According to the split in the SO post b is at 0, g at 1, r at 2
+            output["b"] = getaveragechannelcolor(image, 0)[0]
+            output["g"] = getaveragechannelcolor(image, 1)[0]
+            output["r"] = getaveragechannelcolor(image, 2)[0]
 
-    if channel == "rgb" or forjson:
-        # According to the split in the SO post b is at 0, g at 1, r at 2
-        output["b"] = getaveragechannelcolor(image, 0)[0]
-        output["g"] = getaveragechannelcolor(image, 1)[0]
-        output["r"] = getaveragechannelcolor(image, 2)[0]
-
-    if channel == "hsv" or forjson:
-        # Convert image to HSV
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        # Range of h should be 180
-        output["h"] = getaveragechannelcolor(image, 0, 180)[0]
-        output["s"] = getaveragechannelcolor(image, 1)[0]
-        output["v"] = getaveragechannelcolor(image, 2)[0]
+        if channel == "hsv" or forjson:
+            # Convert image to HSV
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+            # Range of h should be 180
+            output["h"] = getaveragechannelcolor(image, 0, 180)[0]
+            output["s"] = getaveragechannelcolor(image, 1)[0]
+            output["v"] = getaveragechannelcolor(image, 2)[0]
     return output
 
 
