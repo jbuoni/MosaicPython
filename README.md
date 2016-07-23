@@ -30,3 +30,5 @@ line parameters:
 ```
 patch_image_directory patch_size
 ```
+
+Grayscale images are not supported when using patched_images.json file.

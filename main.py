@@ -47,6 +47,10 @@ def main():
 
     filename = "output/" + ntpath.basename(full_img_dir).replace(".", "_") + "_" + str(size) + "_" + channel
 
+    if image_dir == 'patched_images.json' and greyscale is True:
+        print "greyscale images not supported when using json file"
+        greyscale = False
+
     if greyscale:
         filename += "_greyscale"
 
