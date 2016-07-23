@@ -6,6 +6,7 @@ import math
 import cv2
 import sys
 import numpy as np
+import json
 
 """
     Make these global to allow for repeating with more of a range.
@@ -92,7 +93,7 @@ def getclosestpatchmatch(full_color_average, patch_images):
     return return_image
 
 
-def generatepathimages(image_dir):
+def generatepathimages(image_dir, size=None, forjson=False):
     """
     Create the patch images. Grab the image from the image directory and resize it to match
     patch_size.
@@ -113,6 +114,54 @@ def generatepathimages(image_dir):
     # Create patch image object
     output = []
 
+    # For file generator only
+    if size is not None:
+        global patch_size
+        patch_size = size
+
+    #Create array of patch image objects
+    for i in range(len(images)):
+        patch_image = {}
+
+        # Get image
+        image_obj = images[i]
+        image = image_obj["image"]
+
+        #Create patch image object
+        patch_image["path"] = image_obj["path"]
+        if not forjson:
+            patch_image["image"] = image
+            patch_image["resized_image"] = utils.resizeimage(patch_size, patch_size, image)
+
+        patch_image["color_averages"] = getchannelcoloraverages(image, forjson)
+
+        output.append(patch_image)
+
+    return output
+
+
+def generatepathimagesfromjson(data):
+    """
+    Create the patch images. Grab the image from the image directory and resize it to match
+    patch_size.
+    http://stackoverflow.com/questions/2835559/parsing-values-from-a-json-file-in-python
+
+    :param data: json data
+    :return: List of all patch image objects:
+    {
+        path: Image path
+        image: Full image
+        resized_image: Image of size patch_size * patch_size
+        color_averages: r, g, b channel color averages
+    }
+    """
+
+    #Read all images
+    images = utils.readimages(data['image_dir'], greyscale)
+
+    # Create patch image object
+    output = []
+
     #Create array of patch image objects
     for i in range(len(images)):
         patch_image = {}
@@ -125,12 +174,11 @@ def generatepathimages(image_dir):
         patch_image["path"] = image_obj["path"]
         patch_image["image"] = image
         patch_image["resized_image"] = utils.resizeimage(patch_size, patch_size, image)
-        patch_image["color_averages"] = getchannelcoloraverages(image)
+        patch_image["color_averages"] = data["images"][i]["color_averages"]
 
         output.append(patch_image)
 
     return output
-
 
 def getaveragechannelcolor(image, channel, rng=256):
     """
@@ -156,7 +204,7 @@ def getaveragechannelcolor(image, channel, rng=256):
     histogram = cv2.calcHist([image], [channel], None, [rng], [0, rng])
     color_sum = sum(idx * histogram[idx] for idx in range(len(histogram)))
 
-    return color_sum / (width * height)
+    return (color_sum / (width * height)).astype(float)
 
 
 def getgreyscaleaverage(image):
@@ -171,7 +219,7 @@ def getgreyscaleaverage(image):
     return (total_sum / (image.shape[1] * image.shape[0])).astype(np.uint8)
 
 
-def getchannelcoloraverages(image):
+def getchannelcoloraverages(image, forjson=False):
     """
     Get the channel averages for an image.
     http://stackoverflow.com/questions/23202132/splitting-an-rgb-image-to-r-g-b-channels-python
@@ -182,20 +230,21 @@ def getchannelcoloraverages(image):
     output = {}
 
     if greyscale:
-        output["greyscale"] = getgreyscaleaverage(image)
-    else:
-        if channel == "rgb":
-            # According to the split in the SO post b is at 0, g at 1, r at 2
-            output["b"] = getaveragechannelcolor(image, 0)
-            output["g"] = getaveragechannelcolor(image, 1)
-            output["r"] = getaveragechannelcolor(image, 2)
-        elif channel == "hsv":
-            # Convert image to HSV
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-            # Range of h should be 180
-            output["h"] = getaveragechannelcolor(image, 0, 180)
-            output["s"] = getaveragechannelcolor(image, 1)
-            output["v"] = getaveragechannelcolor(image, 2)
+        output["greyscale"] = getgreyscaleaverage(image)[0]
+
+    if channel == "rgb" or forjson:
+        # According to the split in the SO post b is at 0, g at 1, r at 2
+        output["b"] = getaveragechannelcolor(image, 0)[0]
+        output["g"] = getaveragechannelcolor(image, 1)[0]
+        output["r"] = getaveragechannelcolor(image, 2)[0]
+
+    if channel == "hsv" or forjson:
+        # Convert image to HSV
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # Range of h should be 180
+        output["h"] = getaveragechannelcolor(image, 0, 180)[0]
+        output["s"] = getaveragechannelcolor(image, 1)[0]
+        output["v"] = getaveragechannelcolor(image, 2)[0]
     return output
 
 
@@ -246,6 +295,17 @@ def generatemosaic(full_img_dir, image_dir, size, greyscale_val=False, repeat=Tr
 
     print "Generating full image"
 
+    usedjsonfile = False
+
+    if image_dir == 'patched_images.json':
+        print "Reading images from json"
+        with open('patched_images.json') as data_file:
+            data = json.load(data_file)
+        size = data['size']
+        image_dir = data['image_dir']
+        usedjsonfile = True
+
+
     global channel
     channel = channelparam
 
@@ -258,8 +318,12 @@ def generatemosaic(full_img_dir, image_dir, size, greyscale_val=False, repeat=Tr
     fullimage = utils.createfullimage(full_img_dir, patch_size, greyscale)
 
     print "Generating patch images"
-    global patchimages
-    patchimages = generatepathimages(image_dir)
+    if usedjsonfile:
+        global patchimages
+        patchimages = generatepathimagesfromjson(data)
+    else:
+        global patchimages
+        patchimages = generatepathimages(image_dir)
 
     # For repeating. Typically, we run out if images unless there are a ton for smaller patches
     # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
