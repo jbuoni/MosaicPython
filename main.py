@@ -7,6 +7,7 @@ import os
 import cv2
 import ntpath
 import ast
+import datetime
 
 def main():
     """
@@ -17,6 +18,7 @@ def main():
         https://github.com/cinemast/OpenMosaic
         http://stackoverflow.com/questions/715417/converting-from-a-string-to-boolean-in-python
     """
+    print datetime.datetime.now()
     print "Running Mosaic Image Generator. Possible args (all optional) size, greyscale, repeat." \
           "If not specified, the defaults are 20, False, True."
 
@@ -66,6 +68,7 @@ def main():
     result = mosaic.generatemosaic(full_img_dir, image_dir, size, greyscale, repeat, channel)
 
     cv2.imwrite(filename, result)
+    print datetime.datetime.now()
 
 if __name__ == "__main__":
     main()
